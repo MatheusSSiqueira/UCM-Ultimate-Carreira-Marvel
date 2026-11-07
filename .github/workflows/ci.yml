@@ -1,0 +1,37 @@
+name: CI Pipeline - Lint, Frontend Check & Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify Frontend Separation (HTML, CSS, JS)
+        run: |
+          test -s app/static/index.html
+          test -s app/static/styles.css
+          test -s app/static/app.js
+
+      - name: Run Ruff Linter
+        run: ruff check app/ tests/
+
+      - name: Run Automated Tests (Pytest)
+        run: pytest -v

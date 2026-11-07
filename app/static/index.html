@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UCM Ultimate Carreira Marvel | Inteligência Profissional</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container topbar-content">
+      <div class="brand">
+        <span class="brand-badge">UCM</span>
+        <h1 class="brand-title">Ultimate Carreira Marvel <small>v1.0</small></h1>
+      </div>
+      <span class="lgpd-pill" aria-label="Status de conformidade LGPD">
+        🔒 LGPD Zero-Data Storage
+      </span>
+    </div>
+  </header>
+
+  <main class="container main-layout">
+    <section class="hero-header">
+      <h2 class="hero-title">Qual Herói do UCM Define Sua Carreira?</h2>
+      <p class="hero-subtitle">
+        Descubra qual arquétipo do Universo Cinematográfico Marvel reflete seu estilo profissional e receba uma mentoria estratégica gerada por IA.
+      </p>
+    </section>
+
+    <div class="content-grid">
+      <form id="careerForm" class="card form-card" novalidate>
+        <div class="field-group">
+          <label for="work_style">1. Como você prefere trabalhar em equipe?</label>
+          <select id="work_style" required>
+            <option value="Inovador autônomo que cria protótipos rápidos e disruptivos">Inovador autônomo focado em criar ferramentas e automações</option>
+            <option value="Líder tático que organiza a equipe, mantém a ética e protege o time">Líder tático que organiza processos e inspira a equipe</option>
+            <option value="Estrategista analítico que estuda cenários complexos antes de agir">Estrategista analítico focado em arquitetura e estudo profundo</option>
+            <option value="Especialista ágil de execução crítica e resolução silenciosa de crises">Resolvedor ágil focado em apagar incêndios e segurança crítica</option>
+            <option value="Aprendiz versátil, colaborativo e focado em impacto próximo da comunidade">Talento versátil em evolução rápida e foco na experiência do usuário</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="main_skill">2. Qual é sua principal habilidade hoje?</label>
+          <input id="main_skill" type="text" required minlength="3" maxlength="120"
+            placeholder="Ex: Desenvolvimento Python, Cloud Azure, Gestão de Pessoas..." />
+        </div>
+
+        <div class="field-group">
+          <label for="biggest_challenge">3. Qual seu maior desafio profissional no momento?</label>
+          <input id="biggest_challenge" type="text" required minlength="3" maxlength="200"
+            placeholder="Ex: Conciliar estudos técnicos com trabalho e conseguir promoção..." />
+        </div>
+
+        <div class="field-group">
+          <label for="career_goal">4. Onde você quer chegar nos próximos 2 anos?</label>
+          <input id="career_goal" type="text" required minlength="3" maxlength="200"
+            placeholder="Ex: Atuar como Engenheiro de Software / DevOps Pleno-Sênior..." />
+        </div>
+
+        <div class="consent-box">
+          <input id="lgpd_consent" type="checkbox" required />
+          <label for="lgpd_consent">
+            <strong>Uso Consciente de Dados (LGPD):</strong> Estou ciente de que minhas respostas serão processadas exclusivamente em memória volátil para gerar a recomendação de carreira via IA, sem armazenamento em banco de dados ou compartilhamento com terceiros.
+          </label>
+        </div>
+
+        <button id="submitBtn" type="submit" class="btn-primary">
+          Analisar Perfil Profissional
+        </button>
+
+        <p id="errorBox" class="error-banner hidden" role="alert" aria-live="assertive"></p>
+      </form>
+
+      <aside class="result-column" aria-live="polite">
+        <div id="placeholderCard" class="card placeholder-card">
+          <p>Preencha os parâmetros ao lado para gerar seu diagnóstico tático e descobrir seu mentor no UCM.</p>
+        </div>
+
+        <article id="resultCard" class="card result-card hidden">
+          <div class="hero-banner">
+            <img id="heroImage" src="" alt="Retrato licenciado do personagem do UCM" />
+            <div class="hero-overlay"></div>
+            <div class="hero-caption">
+              <div>
+                <span id="alterEgo" class="alter-ego"></span>
+                <h3 id="heroName" class="hero-name"></h3>
+              </div>
+              <span id="compatibilityBadge" class="match-badge"></span>
+            </div>
+          </div>
+
+          <div class="result-body">
+            <p id="imageAttribution" class="attribution-text"></p>
+
+            <div class="info-section">
+              <h4>Identificação de Perfil</h4>
+              <p id="traitAnalysis"></p>
+            </div>
+
+            <div class="info-box advice-box">
+              <h4>Conselho Profissional</h4>
+              <p id="careerAdvice"></p>
+            </div>
+
+            <div class="info-box step-box">
+              <h4>Próximo Passo Recomendado</h4>
+              <p id="nextStep"></p>
+            </div>
+
+            <p id="privacyNotice" class="privacy-footnote"></p>
+          </div>
+        </article>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    Projeto Acadêmico Open-Source (Licença MIT) • Desenvolvido com Python, FastAPI e Google Gemini API
+  </footer>
+
+</body>
+</html>
