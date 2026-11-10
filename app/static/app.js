@@ -72,20 +72,33 @@ function renderHeroMatch(data) {
 }
 
 async function requestHeroMatch(payload) {
-  const response = await fetch("/api/v1/match", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-  const data = await response.json();
-  if (!response.ok) {
-    const errorMessage = Array.isArray(data.detail)
-      ? data.detail[0].msg
-      : data.detail || "Falha ao processar sua análise.";
-    throw new Error(errorMessage);
+  try {
+    const response = await fetch("/api/v1/match", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      const errorMessage = Array.isArray(data.detail)
+        ? data.detail[0].msg
+        : data.detail || "Falha ao processar sua análise.";
+      throw new Error(errorMessage);
+    }
+    return data;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("A análise demorou mais que o esperado. Tente novamente.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return data;
 }
 
 async function handleFormSubmit(event) {

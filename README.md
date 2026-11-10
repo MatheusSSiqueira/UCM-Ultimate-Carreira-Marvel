@@ -1,6 +1,6 @@
 # UCM Ultimate Carreira Marvel — Mentoria Profissional com IA
 
-Aplicação Web Full-Stack desenvolvida em **Python (FastAPI)** integrada à **API Google Gemini (`gemini-2.5-flash`)** que identifica qual personagem do Universo Cinematográfico Marvel (UCM) melhor representa o perfil profissional do usuário e fornece um plano de carreira personalizado.
+Aplicação Web Full-Stack desenvolvida em **Python (FastAPI)** integrada à **API Google Gemini** que identifica qual personagem do Universo Cinematográfico Marvel (UCM) melhor representa o perfil profissional do usuário e fornece um plano de carreira personalizado.
 
 ---
 
@@ -15,10 +15,10 @@ Localizado em `app/static/`, o cliente web foi dividido em três camadas indepen
 - **`app.js` (Camada de Comportamento & Estado):** Consumo assíncrono da API (`Fetch API`), validação de formulário no cliente e prevenção contra **DOM-based XSS** através do uso estrito de `textContent`.
 
 ### 2. Backend & Segurança (OWASP & LGPD)
-- **Privacy by Design (Zero-Persistence):** Nenhum dado pessoal inserido pelo usuário é gravado em banco de dados ou arquivos de log. O processamento ocorre exclusivamente em memória volátil (`RAM`) durante a requisição.
+- **Privacy by Design (Zero-Persistence própria):** Nenhum dado pessoal inserido pelo usuário é gravado em banco de dados ou arquivos de log próprios. As respostas são processadas de forma transitória e enviadas à API Google Gemini exclusivamente para gerar a recomendação; o tratamento do provedor deve ser consultado em sua política de privacidade.
 - **Content Security Policy (CSP):** Como o HTML, CSS e JS estão devidamente separados em arquivos próprios (`'self'`), o servidor bloqueia a execução de scripts inline ou de origens desconhecidas.
 - **Structured Outputs (Pydantic + Gemini 2.5 Flash):** A resposta da IA obedece estritamente ao contrato JSON definido em `AIHeroDecision`, eliminando alucinações de formato e mitigando *Prompt Injection*.
-- **Rate Limiting In-Memory:** Controle de janela deslizante $O(1)$ por IP para proteger a cota gratuita da API.
+- **Rate Limiting In-Memory:** Controle de janela deslizante por IP, com limite de clientes rastreados para evitar crescimento ilimitado da memória. Em múltiplas réplicas, usar um store compartilhado.
 - **Licenciamento de Mídia:** Todas as fotografias exibidas pertencem ao acervo do *Wikimedia Commons* sob licença **Creative Commons (CC BY-SA 3.0 / 4.0)**, com atribuição explícita renderizada na interface.
 
 ---

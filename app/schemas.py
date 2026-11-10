@@ -22,7 +22,10 @@ class UserProfileRequest(BaseModel):
     @classmethod
     def must_accept_privacy_terms(cls, v: bool) -> bool:
         if not v:
-            raise ValueError("Explicit LGPD consent is required for transient data processing.")
+            raise ValueError(
+                "É necessário consentir com o processamento transitório das respostas "
+                "pela API Google Gemini, sem retenção em banco de dados próprio."
+            )
         return v
 
 

@@ -1,12 +1,16 @@
 import os
 import time
-from collections import defaultdict
+from collections import OrderedDict
+
+import httpx
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from google import genai
+from google.genai import errors
 from google.genai import types
+from pydantic import ValidationError
 
 from app.schemas import (
     AIHeroDecision,
@@ -16,6 +20,31 @@ from app.schemas import (
 )
 
 load_dotenv()
+
+AI_HERO_RESPONSE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "hero_key": {
+            "type": "STRING",
+            "enum": [hero_key.value for hero_key in HeroKey],
+        },
+        "compatibility_score": {
+            "type": "INTEGER",
+            "minimum": 60,
+            "maximum": 100,
+        },
+        "trait_analysis": {"type": "STRING"},
+        "career_advice": {"type": "STRING"},
+        "recommended_next_step": {"type": "STRING"},
+    },
+    "required": [
+        "hero_key",
+        "compatibility_score",
+        "trait_analysis",
+        "career_advice",
+        "recommended_next_step",
+    ],
+}
 
 app = FastAPI(
     title="MCU Career Matcher API",
@@ -62,12 +91,24 @@ HERO_CATALOG = {
     },
 }
 
-RATE_LIMIT_WINDOW_SECONDS = 60
-MAX_REQUESTS_PER_WINDOW = 5
-_ip_request_log: dict[str, list[float]] = defaultdict(list)
+def _read_positive_int(name: str, default: int) -> int:
+    value = os.getenv(name, str(default))
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} deve ser um inteiro positivo.") from exc
+    if parsed < 1:
+        raise RuntimeError(f"{name} deve ser um inteiro positivo.")
+    return parsed
 
 
-# Aplica CSP rigoroso
+RATE_LIMIT_WINDOW_SECONDS = _read_positive_int("RATE_LIMIT_WINDOW_SECONDS", 60)
+MAX_REQUESTS_PER_WINDOW = _read_positive_int("MAX_REQUESTS_PER_WINDOW", 5)
+MAX_TRACKED_CLIENTS = 10_000
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+_ip_request_log: OrderedDict[str, list[float]] = OrderedDict()
+
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response: Response = await call_next(request)
@@ -77,21 +118,32 @@ async def add_security_headers(request: Request, call_next):
         "default-src 'self'; "
         "img-src 'self' https://upload.wikimedia.org data:; "
         "style-src 'self'; "
-        "script-src 'self';"
+        "script-src 'self'; "
+        "connect-src 'self'; "
+        "base-uri 'self'; "
+        "object-src 'none'; "
+        "frame-ancestors 'none';"
     )
     return response
 
 
 def enforce_rate_limit(client_ip: str) -> None:
     now = time.time()
-    recent_calls = [t for t in _ip_request_log[client_ip] if now - t < RATE_LIMIT_WINDOW_SECONDS]
+    recent_calls = [
+        timestamp
+        for timestamp in _ip_request_log.get(client_ip, [])
+        if now - timestamp < RATE_LIMIT_WINDOW_SECONDS
+    ]
     if len(recent_calls) >= MAX_REQUESTS_PER_WINDOW:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Limite de requisições excedido. Aguarde 1 minuto antes de tentar novamente.",
         )
     recent_calls.append(now)
+    if client_ip not in _ip_request_log and len(_ip_request_log) >= MAX_TRACKED_CLIENTS:
+        _ip_request_log.popitem(last=False)
     _ip_request_log[client_ip] = recent_calls
+    _ip_request_log.move_to_end(client_ip)
 
 
 def generate_ai_decision(payload: UserProfileRequest) -> AIHeroDecision:
@@ -118,18 +170,38 @@ def generate_ai_decision(payload: UserProfileRequest) -> AIHeroDecision:
         f"Objetivo de Carreira: {payload.career_goal}"
     )
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=user_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            response_mime_type="application/json",
-            response_schema=AIHeroDecision,
-            temperature=0.4,
-        ),
-    )
-
-    return AIHeroDecision.model_validate_json(response.text)
+    try:
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=user_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                response_mime_type="application/json",
+                response_schema=AI_HERO_RESPONSE_SCHEMA,
+                temperature=0.4,
+            ),
+        )
+        return AIHeroDecision.model_validate_json(response.text)
+    except errors.APIError as exc:
+        if exc.code == 429:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="O serviço de IA está temporariamente indisponível. Tente novamente mais tarde.",
+            ) from exc
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Não foi possível obter uma recomendação do serviço de IA.",
+        ) from exc
+    except (httpx.TimeoutException, httpx.RequestError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="O serviço de IA não respondeu a tempo. Tente novamente.",
+        ) from exc
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="O serviço de IA retornou uma resposta inválida.",
+        ) from exc
 
 
 @app.get("/api/v1/health")
@@ -155,7 +227,11 @@ async def match_hero(payload: UserProfileRequest, request: Request):
         recommended_next_step=decision.recommended_next_step,
         image_url=hero_meta["image_url"],
         image_attribution=hero_meta["image_attribution"],
-        privacy_notice="Processamento efêmero concluído: nenhum dado fornecido foi salvo em banco de dados ou logs (Conformidade LGPD).",
+        privacy_notice=(
+            "Processamento transitório concluído: suas respostas foram enviadas à API "
+            "Google Gemini exclusivamente para gerar esta recomendação. Não há retenção "
+            "em banco de dados próprio nem gravação em logs."
+        ),
     )
 
 

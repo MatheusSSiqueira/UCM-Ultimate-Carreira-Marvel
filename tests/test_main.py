@@ -1,9 +1,15 @@
 from fastapi.testclient import TestClient
 from unittest.mock import patch
-from app.main import app
+from app.main import AI_HERO_RESPONSE_SCHEMA, app
 from app.schemas import AIHeroDecision, HeroKey
 
 client = TestClient(app)
+
+
+def test_gemini_response_schema_is_sdk_compatible():
+    assert AI_HERO_RESPONSE_SCHEMA["type"] == "OBJECT"
+    assert "$defs" not in str(AI_HERO_RESPONSE_SCHEMA)
+    assert "hero_key" in AI_HERO_RESPONSE_SCHEMA["required"]
 
 
 def test_health_check_and_security_headers():
@@ -12,6 +18,7 @@ def test_health_check_and_security_headers():
     assert response.json()["persistence"] == "stateless_lgpd_compliant"
     assert "script-src 'self'" in response.headers["Content-Security-Policy"]
     assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
 
 
 def test_separated_frontend_assets_served():

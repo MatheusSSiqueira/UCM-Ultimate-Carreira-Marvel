@@ -23,6 +23,10 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pip-audit
+
+      - name: Audit Python dependencies
+        run: pip-audit -r requirements.txt
 
       - name: Verify Frontend Separation (HTML, CSS, JS)
         run: |
