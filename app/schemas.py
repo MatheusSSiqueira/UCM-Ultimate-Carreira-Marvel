@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 from pydantic import BaseModel, Field, field_validator
 
@@ -18,20 +19,26 @@ class UserProfileRequest(BaseModel):
     career_goal: str = Field(..., min_length=3, max_length=200)
     lgpd_consent: bool = Field(...)
 
+    @field_validator("work_style", "main_skill", "biggest_challenge", "career_goal")
+    @classmethod
+    def sanitize_control_characters(cls, value: str) -> str:
+        cleaned = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", value).strip()
+        cleaned = re.sub(r"\s+", " ", cleaned)
+        if len(cleaned) < 3:
+            raise ValueError("O campo deve conter ao menos 3 caracteres validos.")
+        return cleaned
+
     @field_validator("lgpd_consent")
     @classmethod
-    def must_accept_privacy_terms(cls, v: bool) -> bool:
-        if not v:
-            raise ValueError(
-                "É necessário consentir com o processamento transitório das respostas "
-                "pela API Google Gemini, sem retenção em banco de dados próprio."
-            )
-        return v
+    def must_accept_privacy_terms(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("O consentimento para processamento transitorio e obrigatorio.")
+        return value
 
 
 class AIHeroDecision(BaseModel):
     hero_key: HeroKey
-    compatibility_score: int = Field(..., ge=60, le=100)
+    compatibility_score: int = Field(..., ge=65, le=100)
     trait_analysis: str = Field(..., max_length=450)
     career_advice: str = Field(..., max_length=500)
     recommended_next_step: str = Field(..., max_length=250)

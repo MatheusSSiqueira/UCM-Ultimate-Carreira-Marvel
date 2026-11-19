@@ -1,16 +1,11 @@
 :root {
-  --bg-primary: #020617;
-  --bg-surface: #0f172a;
-  --bg-elevated: #090d16;
-  --border-subtle: #1e293b;
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  --accent-red: #dc2626;
-  --accent-red-hover: #ef4444;
-  --accent-gold: #fbbf24;
-  --accent-emerald: #10b981;
-  --radius-lg: 1rem;
-  --radius-md: 0.625rem;
+  --marvel-red: #ed1d24;
+  --comic-yellow: #fde047;
+  --ink-black: #09090b;
+  --sheet-bg: rgba(255, 255, 255, 0.96);
+  --text-primary: #09090b;
+  --text-secondary: #3f3f46;
+  --border-subtle: #d4d4d8;
 }
 
 * {
@@ -20,339 +15,543 @@
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-main);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #d4d4d8;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.28), rgba(15, 23, 42, 0.38)),
+    url("/static/plano-de-fundo.jpg"),
+    radial-gradient(rgba(0, 0, 0, 0.18) 1.75px, transparent 1.75px),
+    radial-gradient(rgba(0, 0, 0, 0.12) 1.25px, #e4e4e7 1.25px);
+  background-size: cover, cover, 16px 16px, 16px 16px;
+  background-position: center, center, 0 0, 8px 8px;
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   line-height: 1.5;
+  overflow-x: hidden;
+  position: relative;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body.reading-contrast-mode {
+  background-color: #09090b;
+  background-image: none;
+  --sheet-bg: #ffffff;
+  --text-primary: #000000;
+  --text-secondary: #18181b;
+  --border-subtle: #000000;
+}
+
+body.reading-contrast-mode .random-stickers-layer {
+  display: none;
+}
+
+body.reading-contrast-mode .tool-btn {
+  background-color: var(--comic-yellow);
+  color: #000000;
+  border-color: #000000;
 }
 
 .container {
   width: 100%;
-  max-width: 64rem;
+  max-width: 66rem;
   margin: 0 auto;
   padding: 0 1rem;
+  position: relative;
+  z-index: 2;
 }
 
 .hidden {
   display: none !important;
 }
 
+.random-stickers-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.floating-sticker {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(3px 3px 0 #000);
+  opacity: 0.25;
+}
+
 .topbar {
-  border-bottom: 1px solid var(--border-subtle);
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(8px);
+  background: var(--sheet-bg);
+  border-bottom: 3px solid var(--ink-black);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
 }
 
 .topbar-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
 }
 
-.brand-badge {
-  background: var(--accent-red);
-  color: #fff;
-  font-weight: 900;
-  padding: 0.2rem 0.65rem;
-  border-radius: 0.35rem;
-  letter-spacing: 0.06em;
+.marvel-logo {
+  background-color: var(--marvel-red);
+  padding: 0.08rem 0.5rem;
 }
 
-.brand-title {
-  font-size: 1.15rem;
+.marvel-logo span {
+  font-family: "Bangers", Impact, "Arial Black", sans-serif;
+  color: #ffffff;
+  font-size: 1.75rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  display: block;
+}
+
+.brand-subtitle {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 0.95rem;
   font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
 }
 
-.brand-title small {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 400;
+.tool-btn {
+  background: #ffffff;
+  color: #09090b;
+  border: 2px solid #09090b;
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
-.lgpd-pill {
-  font-size: 0.75rem;
-  background: rgba(16, 185, 129, 0.12);
-  color: #6ee7b7;
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
+.tool-btn:hover {
+  background: var(--comic-yellow);
+}
+
+.tool-btn:active {
+  transform: translateY(1px);
 }
 
 .main-layout {
   flex: 1;
-  padding-top: 2.5rem;
-  padding-bottom: 2.5rem;
+  padding-top: 1.75rem;
+  padding-bottom: 2.25rem;
 }
 
 .hero-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.75rem;
+  background: var(--sheet-bg);
+  border-bottom: 4px solid var(--marvel-red);
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 
 .hero-title {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 800;
-  margin-bottom: 0.75rem;
-  background: linear-gradient(90deg, #ef4444, var(--accent-gold), #ef4444);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-family: "Bangers", Impact, sans-serif;
+  font-size: clamp(1.9rem, 4.2vw, 2.75rem);
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
 }
 
 .hero-subtitle {
-  color: var(--text-muted);
-  max-width: 40rem;
+  color: var(--text-secondary);
+  max-width: 44rem;
   margin: 0 auto;
-  font-size: 0.95rem;
+  font-size: 0.94rem;
+  font-weight: 500;
 }
 
-.content-grid {
+.editorial-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1.75rem;
   align-items: start;
 }
 
-@media (min-width: 768px) {
-  .content-grid {
-    grid-template-columns: 7fr 5fr;
+@media (min-width: 820px) {
+  .editorial-grid {
+    grid-template-columns: 6fr 6fr;
   }
 }
 
-.card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.45);
+.surface-sheet {
+  background: var(--sheet-bg);
+  padding: 1.5rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  border-top: 4px solid var(--ink-black);
 }
 
-.form-card {
-  padding: 1.5rem;
+.section-heading {
+  font-family: "Bangers", Impact, sans-serif;
+  font-size: 1.45rem;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--border-subtle);
+}
+
+.form-sheet {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.95rem;
 }
 
 .field-group label {
   display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #cbd5e1;
-  margin-bottom: 0.375rem;
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
 }
 
 .field-group input,
 .field-group select {
   width: 100%;
-  background: var(--bg-elevated);
-  border: 1px solid #334155;
-  color: var(--text-main);
-  border-radius: var(--radius-md);
-  padding: 0.65rem 0.85rem;
-  font-size: 0.875rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: #ffffff;
+  border: 1.5px solid #71717a;
+  color: #09090b;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: border-color 0.15s ease;
 }
 
 .field-group input:focus,
 .field-group select:focus {
   outline: none;
-  border-color: var(--accent-red);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25);
+  border-color: var(--marvel-red);
+  background: #fffbeb;
 }
 
-.consent-box {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  padding: 0.875rem;
-  border-radius: var(--radius-md);
+.consent-line {
+  padding-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.consent-row {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
-.consent-box input[type="checkbox"] {
-  margin-top: 0.2rem;
-  accent-color: var(--accent-red);
+.consent-row input[type="checkbox"] {
+  accent-color: var(--marvel-red);
   width: 1rem;
   height: 1rem;
   cursor: pointer;
 }
 
-.btn-primary {
-  background: var(--accent-red);
-  color: #fff;
+.privacy-drawer {
+  margin-top: 0.3rem;
+  font-size: 0.74rem;
+}
+
+.privacy-drawer summary {
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  color: var(--text-secondary);
+}
+
+.privacy-drawer p {
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+.btn-marvel {
+  margin-top: 0.25rem;
+  background: var(--marvel-red);
+  color: #ffffff;
+  font-family: "Bangers", Impact, sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
   border: none;
-  border-radius: var(--radius-md);
-  padding: 0.85rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 700;
+  padding: 0.75rem 1rem;
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: var(--accent-red-hover);
+.btn-marvel:hover:not(:disabled) {
+  background: #c8141b;
 }
 
-.btn-primary:active:not(:disabled) {
-  transform: scale(0.99);
+.btn-marvel:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: wait;
+.btn-marvel.btn-clicked {
+  animation: comicShake 0.35s ease;
+}
+
+@keyframes comicShake {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(0.96); }
+  50% { transform: scale(1.02); }
 }
 
 .error-banner {
-  font-size: 0.8rem;
-  color: #fca5a5;
-  background: rgba(127, 29, 29, 0.35);
-  border: 1px solid #991b1b;
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-}
-
-.placeholder-card {
-  padding: 2.5rem 1.5rem;
-  text-align: center;
-  border-style: dashed;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.result-card {
-  overflow: hidden;
-}
-
-.hero-banner {
-  position: relative;
-  height: 16rem;
-  background: var(--bg-elevated);
-}
-
-.hero-banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-}
-
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--bg-surface) 5%, rgba(15, 23, 42, 0.25) 60%, transparent);
-}
-
-.hero-caption {
-  position: absolute;
-  bottom: 0.75rem;
-  left: 1rem;
-  right: 1rem;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-
-.alter-ego {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--accent-gold);
+  font-size: 0.84rem;
   font-weight: 700;
+  color: #ffffff;
+  background: var(--marvel-red);
+  padding: 0.65rem 0.85rem;
+}
+
+.placeholder-intro {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.hero-roster-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+.roster-item {
+  text-align: center;
+  padding: 0.35rem;
+  transition: transform 0.2s ease;
+}
+
+.roster-item:hover {
+  transform: scale(1.07) rotate(0deg) !important;
+}
+
+.roster-item img {
+  width: 100%;
+  height: 5.5rem;
+  object-fit: contain;
+  filter: drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.35));
   display: block;
 }
 
-.hero-name {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: #fff;
+.roster-item span {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.loading-state {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.comic-loader-burst {
+  display: inline-block;
+  background: var(--marvel-red);
+  color: #ffffff;
+  font-family: "Bangers", Impact, sans-serif;
+  font-size: 2.3rem;
+  padding: 0.35rem 1.2rem;
+  animation: pulsePow 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes pulsePow {
+  from { transform: scale(0.94); }
+  to { transform: scale(1.06); }
+}
+
+.loading-title {
+  font-family: "Bangers", Impact, sans-serif;
+  font-size: 1.3rem;
+  margin-top: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.loading-bar {
+  margin: 0.75rem auto 0;
+  max-width: 16rem;
+  height: 0.6rem;
+  background: #e4e4e7;
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  width: 45%;
+  height: 100%;
+  background: var(--marvel-red);
+  animation: slideBar 0.8s infinite linear;
+}
+
+@keyframes slideBar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(220%); }
+}
+
+.result-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.65rem;
+  border-bottom: 2px solid var(--border-subtle);
+  margin-bottom: 1rem;
+}
+
+.result-tag {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
 }
 
 .match-badge {
-  background: var(--accent-red);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.25rem 0.65rem;
-  border-radius: 0.5rem;
+  background: var(--marvel-red);
+  color: #ffffff;
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
 }
 
-.result-body {
-  padding: 1.25rem;
+.hero-showcase {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
+}
+
+.hero-showcase img {
+  width: 6.5rem;
+  height: 6.5rem;
+  object-fit: contain;
+  filter: drop-shadow(3px 4px 4px rgba(0, 0, 0, 0.35));
+  animation: heroPopIn 0.4s ease-out;
+}
+
+@keyframes heroPopIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.alter-ego {
+  display: block;
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--marvel-red);
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+
+.hero-name {
+  font-family: "Bangers", Impact, sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  line-height: 1.05;
+}
+
+.result-narrative {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
 }
 
-.attribution-text {
-  font-size: 0.7rem;
-  color: #64748b;
-  font-style: italic;
+.narrative-block {
+  padding-left: 0.85rem;
+  border-left: 3px solid var(--ink-black);
 }
 
-.info-section h4,
-.info-box h4 {
-  font-size: 0.72rem;
+.narrative-block.accent-border {
+  border-left-color: var(--marvel-red);
+}
+
+.narrative-block.success-border {
+  border-left-color: #15803d;
+}
+
+.narrative-block h3 {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.3rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
 }
 
-.info-section h4 {
-  color: var(--text-muted);
+.narrative-block p {
+  color: var(--text-secondary);
 }
 
-.info-box {
-  padding: 0.875rem;
-  border-radius: var(--radius-md);
-}
-
-.advice-box {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-}
-
-.advice-box h4 {
-  color: var(--accent-gold);
-}
-
-.step-box {
-  background: rgba(6, 78, 59, 0.25);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-}
-
-.step-box h4 {
-  color: #34d399;
-}
-
-.privacy-footnote {
+.attribution-footnote {
   font-size: 0.7rem;
-  color: #64748b;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 0.75rem;
+  color: #71717a;
+  font-style: italic;
+  text-align: right;
+  padding-top: 0.25rem;
+}
+
+.comic-fx-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comic-burst-word {
+  background: var(--comic-yellow);
+  color: var(--marvel-red);
+  font-family: "Bangers", Impact, sans-serif;
+  font-size: 4rem;
+  padding: 0.4rem 1.6rem;
+  border: 3px solid var(--ink-black);
+  animation: burstOut 0.55s ease-out forwards;
+}
+
+@keyframes burstOut {
+  0% { transform: scale(0.3); opacity: 1; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
 }
 
 .footer {
-  border-top: 1px solid var(--border-subtle);
-  padding: 1.25rem;
+  background: var(--sheet-bg);
+  border-top: 3px solid var(--ink-black);
+  padding: 0.75rem 0;
+  font-size: 0.74rem;
+  position: relative;
+  z-index: 2;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
   text-align: center;
-  font-size: 0.75rem;
-  color: #64748b;
+}
+
+.footer-credits {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
 }

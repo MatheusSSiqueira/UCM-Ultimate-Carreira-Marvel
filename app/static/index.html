@@ -3,114 +3,143 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UCM Ultimate Carreira Marvel | Inteligência Profissional</title>
+  <title>MARVEL | Lideranca e Carreira</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Chakra+Petch:wght@600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
   <script src="/static/app.js" defer></script>
 </head>
 <body>
 
+  <div id="randomStickersLayer" class="random-stickers-layer" aria-hidden="true"></div>
+  <div id="comicFxOverlay" class="comic-fx-overlay hidden" aria-hidden="true"></div>
+
   <header class="topbar">
     <div class="container topbar-content">
       <div class="brand">
-        <span class="brand-badge">UCM</span>
-        <h1 class="brand-title">Ultimate Carreira Marvel <small>v1.0</small></h1>
+        <div class="marvel-logo" aria-label="Logo Marvel">
+          <span>MARVEL</span>
+        </div>
+        <span class="brand-subtitle">LIDERANCA E CARREIRA</span>
       </div>
-      <span class="lgpd-pill" aria-label="Status de conformidade LGPD">
-        🔒 LGPD Zero-Data Storage
-      </span>
+
+      <button id="btnContrast" type="button" class="tool-btn" aria-pressed="false">
+        Modo Leitura
+      </button>
     </div>
   </header>
 
   <main class="container main-layout">
     <section class="hero-header">
-      <h2 class="hero-title">Qual Herói do UCM Define Sua Carreira?</h2>
+      <h1 class="hero-title">QUAL LIDER DA MARVEL DEFINE SEU ESTILO DE NEGOCIOS?</h1>
       <p class="hero-subtitle">
-        Descubra qual arquétipo do Universo Cinematográfico Marvel reflete seu estilo profissional e receba uma mentoria estratégica gerada por IA.
+        De jovens talentos a empreendedores experientes: descubra qual arquetipo da Marvel reflete sua visao de trabalho e receba um direcionamento estrategico para o seu proximo passo.
       </p>
     </section>
 
-    <div class="content-grid">
-      <form id="careerForm" class="card form-card" novalidate>
+    <div class="editorial-grid">
+      <form id="careerForm" class="surface-sheet form-sheet" novalidate>
+        <h2 class="section-heading">Diagnostico de Perfil Empreendedor</h2>
+
         <div class="field-group">
-          <label for="work_style">1. Como você prefere trabalhar em equipe?</label>
+          <label for="work_style">1. Como voce costuma liderar ou gerar resultados?</label>
           <select id="work_style" required>
-            <option value="Inovador autônomo que cria protótipos rápidos e disruptivos">Inovador autônomo focado em criar ferramentas e automações</option>
-            <option value="Líder tático que organiza a equipe, mantém a ética e protege o time">Líder tático que organiza processos e inspira a equipe</option>
-            <option value="Estrategista analítico que estuda cenários complexos antes de agir">Estrategista analítico focado em arquitetura e estudo profundo</option>
-            <option value="Especialista ágil de execução crítica e resolução silenciosa de crises">Resolvedor ágil focado em apagar incêndios e segurança crítica</option>
-            <option value="Aprendiz versátil, colaborativo e focado em impacto próximo da comunidade">Talento versátil em evolução rápida e foco na experiência do usuário</option>
+            <option value="Visionario de inovacao que cria produtos, automatiza processos e investe em tecnologia">Inovacao e Produto: crio solucoes novas e modernizo o negocio (Perfil Tony Stark)</option>
+            <option value="Lider de pessoas que inspira confianca, etica e une a equipe pelo exemplo">Gestao e Cultura: lidero pelo exemplo e fortaleco a equipe (Perfil Steve Rogers)</option>
+            <option value="Estrategista analitico que estuda o mercado, antecipa riscos e planeja no longo prazo">Visao Estrategica: analiso cenarios e planejo cada passo com precisao (Perfil Dr. Estranho)</option>
+            <option value="Executor focado em negociacoes criticas, resolucao rapida de crises e eficiencia">Execucao e Crise: resolvo problemas complexos com agilidade e discricao (Perfil Natasha Romanoff)</option>
+            <option value="Gestor de alto impacto que equilibra governanca, patrimonio e crescimento sustentavel">Governanca e Impacto: uno tradicao, recursos e expansao sustentavel (Perfil Rei T'Challa)</option>
+            <option value="Empreendedor versatil e proximo do cliente, com aprendizado rapido e adaptabilidade">Relacionamento e Agilidade: aprendo rapido na pratica e foco no cliente (Perfil Peter Parker)</option>
           </select>
         </div>
 
         <div class="field-group">
-          <label for="main_skill">2. Qual é sua principal habilidade hoje?</label>
+          <label for="main_skill">2. Qual e o seu principal diferencial ou especialidade hoje?</label>
           <input id="main_skill" type="text" required minlength="3" maxlength="120"
-            placeholder="Ex: Desenvolvimento Python, Cloud Azure, Gestão de Pessoas..." />
+            placeholder="Ex: Gestao comercial, Atendimento ao cliente, Sistemas, Financas..." />
         </div>
 
         <div class="field-group">
-          <label for="biggest_challenge">3. Qual seu maior desafio profissional no momento?</label>
+          <label for="biggest_challenge">3. Qual e o seu maior desafio de carreira ou negocio no momento?</label>
           <input id="biggest_challenge" type="text" required minlength="3" maxlength="200"
-            placeholder="Ex: Conciliar estudos técnicos com trabalho e conseguir promoção..." />
+            placeholder="Ex: Aumentar vendas, escalar o negocio, transicao de carreira..." />
         </div>
 
         <div class="field-group">
-          <label for="career_goal">4. Onde você quer chegar nos próximos 2 anos?</label>
+          <label for="career_goal">4. Qual e a sua principal meta para os proximos anos?</label>
           <input id="career_goal" type="text" required minlength="3" maxlength="200"
-            placeholder="Ex: Atuar como Engenheiro de Software / DevOps Pleno-Sênior..." />
+            placeholder="Ex: Expandir minha empresa, alcancar cargo de lideranca, consolidar marca..." />
         </div>
 
-        <div class="consent-box">
-          <input id="lgpd_consent" type="checkbox" required />
-          <label for="lgpd_consent">
-            <strong>Uso Consciente de Dados (LGPD):</strong> Estou ciente de que minhas respostas serão processadas de forma transitória e enviadas à API Google Gemini exclusivamente para gerar a recomendação de carreira, sem retenção em banco de dados próprio ou gravação em logs. Consulte a política do provedor para o tratamento realizado por terceiros.
+        <div class="consent-line">
+          <label class="consent-row" for="lgpd_consent">
+            <input id="lgpd_consent" type="checkbox" required />
+            <span>Autorizo a analise instantanea via IA (sem armazenamento dos meus dados).</span>
           </label>
+          <details class="privacy-drawer">
+            <summary>Uso Consciente de Dados</summary>
+            <p id="privacyNotice">
+              Seus dados sao processados exclusivamente em memoria volatil via API Google Gemini para gerar este diagnostico profissional, sem gravacao em banco de dados ou historico.
+            </p>
+          </details>
         </div>
 
-        <button id="submitBtn" type="submit" class="btn-primary">
-          Analisar Perfil Profissional
+        <button id="submitBtn" type="submit" class="btn-marvel">
+          GERAR MEU PERFIL E MENTORIA
         </button>
 
         <p id="errorBox" class="error-banner hidden" role="alert" aria-live="assertive"></p>
       </form>
 
-      <aside class="result-column" aria-live="polite">
-        <div id="placeholderCard" class="card placeholder-card">
-          <p>Preencha os parâmetros ao lado para gerar seu diagnóstico tático e descobrir seu mentor no UCM.</p>
+      <aside class="surface-sheet result-sheet" aria-live="polite">
+        <div id="loadingCard" class="loading-state hidden">
+          <div class="comic-loader-burst">ACAO</div>
+          <p class="loading-title">CONECTANDO ESTRATEGIA E LIDERANCA...</p>
+          <div class="loading-bar"><div class="loading-bar-fill"></div></div>
         </div>
 
-        <article id="resultCard" class="card result-card hidden">
-          <div class="hero-banner">
-            <img id="heroImage" src="" alt="Retrato licenciado do personagem do UCM" />
-            <div class="hero-overlay"></div>
-            <div class="hero-caption">
-              <div>
-                <span id="alterEgo" class="alter-ego"></span>
-                <h3 id="heroName" class="hero-name"></h3>
-              </div>
-              <span id="compatibilityBadge" class="match-badge"></span>
+        <div id="placeholderCard" class="roster-state">
+          <div class="roster-header">
+            <h2 class="section-heading">Arquetipos de Lideranca Marvel</h2>
+            <p class="placeholder-intro">
+              Cada personagem representa uma mentalidade de negocios. Preencha ao lado para descobrir a sua:
+            </p>
+          </div>
+          <div id="heroRosterGrid" class="hero-roster-preview"></div>
+        </div>
+
+        <article id="resultCard" class="result-state hidden">
+          <div class="result-topbar">
+            <span class="result-tag">PERFIL EXECUTIVO IDENTIFICADO</span>
+            <span id="compatibilityBadge" class="match-badge"></span>
+          </div>
+
+          <div class="hero-showcase">
+            <img id="heroImage" src="" alt="Personagem da Marvel em PNG" referrerpolicy="no-referrer" />
+            <div class="hero-identity">
+              <span id="alterEgo" class="alter-ego"></span>
+              <h2 id="heroName" class="hero-name"></h2>
             </div>
           </div>
 
-          <div class="result-body">
-            <p id="imageAttribution" class="attribution-text"></p>
-
-            <div class="info-section">
-              <h4>Identificação de Perfil</h4>
+          <div class="result-narrative">
+            <div class="narrative-block">
+              <h3>Sinergia com seu Estilo de Atuacao</h3>
               <p id="traitAnalysis"></p>
             </div>
 
-            <div class="info-box advice-box">
-              <h4>Conselho Profissional</h4>
+            <div class="narrative-block accent-border">
+              <h3>Visao de Negocios e Posicionamento</h3>
               <p id="careerAdvice"></p>
             </div>
 
-            <div class="info-box step-box">
-              <h4>Próximo Passo Recomendado</h4>
+            <div class="narrative-block success-border">
+              <h3>Plano de Acao Recomendado</h3>
               <p id="nextStep"></p>
             </div>
 
-            <p id="privacyNotice" class="privacy-footnote"></p>
+            <p id="imageAttribution" class="attribution-footnote"></p>
           </div>
         </article>
       </aside>
@@ -118,7 +147,14 @@
   </main>
 
   <footer class="footer">
-    Projeto Acadêmico Open-Source (Licença MIT) • Desenvolvido com Python, FastAPI e Google Gemini API • Imagens: Wikimedia Commons, CC BY-SA 3.0/4.0
+    <div class="container footer-content">
+      <p>
+        <strong>MARVEL LIDERANCA E CARREIRA</strong> - Projeto Academico Open-Source (Licenca MIT) - Python, FastAPI e Google Gemini API
+      </p>
+      <p class="footer-credits">
+        Ilustracoes de personagens em PNG via Canvas e Acervo Wikimedia Commons (CC BY-SA 3.0/4.0)
+      </p>
+    </div>
   </footer>
 
 </body>
