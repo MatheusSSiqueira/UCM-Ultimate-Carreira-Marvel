@@ -179,7 +179,10 @@ def generate_ai_decision(payload: UserProfileRequest) -> AIHeroDecision:
         return build_deterministic_match(payload)
 
     try:
-        client = genai.Client(api_key=api_key, http_options={"timeout": 12000})
+        client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(api_version="v1beta", timeout=12_000),
+        )
         system_instruction = (
             "Voce e um consultor executivo de negocios, empreendedorismo e posicionamento no LinkedIn, "
             "especialista nos arquetipos de lideranca da Marvel. "
