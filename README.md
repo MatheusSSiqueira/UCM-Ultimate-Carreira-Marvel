@@ -1,4 +1,4 @@
-# UCM Ultimate Carreira Marvel — Mentoria Profissional com IA
+# UCM - Ultimate Carreira Marvel
 
 Aplicação Web Full-Stack desenvolvida em **Python (FastAPI)** integrada à **API Google Gemini** que identifica qual personagem do Universo Cinematográfico Marvel (UCM) melhor representa o perfil profissional do usuário e fornece um plano de carreira personalizado.
 
@@ -44,6 +44,7 @@ mcu-career-matcher/
 │   └── test_main.py            # Testes automatizados de rotas, segurança e estáticos
 ├── .env.example                # Modelo de variáveis de ambiente
 ├── Dockerfile                  # Imagem Docker otimizada com usuário non-root
-├── LICENSE                     # Licença MIT Acadêmica / Estudante
+├── LICENSE                     # Licença MIT
 ├── README.md                   # Documentação técnica do projeto
-└── requirements.txt            # Dependências Python fixadas
+├── requirements.txt            # Dependências de produção fixadas
+└── requirements-dev.txt        # Dependências de desenvolvimento e testes

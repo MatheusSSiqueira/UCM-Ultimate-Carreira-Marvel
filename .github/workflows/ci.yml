@@ -2,9 +2,9 @@ name: CI Pipeline - Lint, Frontend Check & Test
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "Developer" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "Developer" ]
 
 jobs:
   quality-gate:
@@ -22,11 +22,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pip-audit
+          pip install -r requirements-dev.txt
 
       - name: Audit Python dependencies
-        run: pip-audit -r requirements.txt
+        run: pip-audit -r requirements-dev.txt
 
       - name: Verify Frontend Separation (HTML, CSS, JS)
         run: |
@@ -39,3 +38,12 @@ jobs:
 
       - name: Run Automated Tests (Pytest)
         run: pytest -v
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker image build
+        run: docker build .
