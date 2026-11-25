@@ -1,8 +1,13 @@
+import logging
 import os
 import re
 import time
 import unicodedata
 from collections import OrderedDict
+
+from pydantic import ValidationError
+
+from app import __version__
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -19,9 +24,11 @@ from app.schemas import (
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
-    title="Marvel Lideranca e Carreira API",
-    version="3.0.0",
+    title="UCM - Ultimate Carreira Marvel API",
+    version=__version__,
     docs_url="/api/docs",
 )
 
@@ -206,7 +213,11 @@ def generate_ai_decision(payload: UserProfileRequest) -> AIHeroDecision:
             career_advice=strip_emojis_and_symbols(raw_decision.career_advice),
             recommended_next_step=strip_emojis_and_symbols(raw_decision.recommended_next_step),
         )
-    except (errors.APIError, Exception):
+    except errors.APIError as error:
+        logger.warning("Falha na API Gemini (%s).", type(error).__name__)
+        return build_deterministic_match(payload)
+    except (ValueError, ValidationError) as error:
+        logger.warning("Resposta inválida da API Gemini (%s).", type(error).__name__)
         return build_deterministic_match(payload)
 
 

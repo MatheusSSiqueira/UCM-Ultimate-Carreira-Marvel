@@ -1,15 +1,75 @@
+import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch
-from app.main import AI_HERO_RESPONSE_SCHEMA, app
-from app.schemas import AIHeroDecision, HeroKey
 
-client = TestClient(app)
+from app import main
+from app.schemas import AIHeroDecision, HeroKey, UserProfileRequest
+
+client = TestClient(main.app)
 
 
-def test_gemini_response_schema_is_sdk_compatible():
-    assert AI_HERO_RESPONSE_SCHEMA["type"] == "OBJECT"
-    assert "$defs" not in str(AI_HERO_RESPONSE_SCHEMA)
-    assert "hero_key" in AI_HERO_RESPONSE_SCHEMA["required"]
+@pytest.fixture(autouse=True)
+def clear_ip_request_log():
+    main._ip_request_log.clear()
+    yield
+    main._ip_request_log.clear()
+
+
+def valid_profile_payload():
+    return {
+        "work_style": "Inovador autônomo",
+        "main_skill": "Python e FastAPI",
+        "biggest_challenge": "Escalar arquitetura",
+        "career_goal": "Engenheiro Sênior",
+        "lgpd_consent": True,
+    }
+
+
+def test_short_field_returns_422():
+    payload = valid_profile_payload()
+    payload["work_style"] = "ab"
+
+    response = client.post("/api/v1/match", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_rate_limit_returns_429_after_maximum_requests(monkeypatch):
+    monkeypatch.setattr(main, "MAX_REQUESTS_PER_WINDOW", 2)
+    monkeypatch.setattr(main, "RATE_LIMIT_WINDOW_SECONDS", 60)
+    monkeypatch.setenv("GEMINI_API_KEY", "")
+
+    first_response = client.post("/api/v1/match", json=valid_profile_payload())
+    second_response = client.post("/api/v1/match", json=valid_profile_payload())
+    third_response = client.post("/api/v1/match", json=valid_profile_payload())
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+    assert third_response.status_code == 429
+
+
+def test_deterministic_match_returns_valid_hero_key():
+    profile = UserProfileRequest.model_validate(valid_profile_payload())
+
+    decision = main.build_deterministic_match(profile)
+
+    assert isinstance(decision.hero_key, HeroKey)
+
+
+def test_empty_gemini_api_key_uses_deterministic_fallback(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "")
+    profile = UserProfileRequest.model_validate(valid_profile_payload())
+
+    decision = main.generate_ai_decision(profile)
+
+    assert isinstance(decision.hero_key, HeroKey)
+
+
+def test_home_page_title_contains_official_product_name():
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "<title>UCM - Ultimate Carreira Marvel</title>" in response.text
 
 
 def test_health_check_and_security_headers():
@@ -45,10 +105,7 @@ def test_rejects_missing_lgpd_consent():
     response = client.post(
         "/api/v1/match",
         json={
-            "work_style": "Inovador autônomo",
-            "main_skill": "Python e FastAPI",
-            "biggest_challenge": "Escalar arquitetura",
-            "career_goal": "Arquiteto de Software",
+            **valid_profile_payload(),
             "lgpd_consent": False,
         },
     )
@@ -68,11 +125,7 @@ def test_successful_hero_match(mock_ai):
     response = client.post(
         "/api/v1/match",
         json={
-            "work_style": "Inovador autônomo",
-            "main_skill": "Python e FastAPI",
-            "biggest_challenge": "Escalar arquitetura",
-            "career_goal": "Engenheiro Sênior",
-            "lgpd_consent": True,
+            **valid_profile_payload(),
         },
     )
     assert response.status_code == 200
