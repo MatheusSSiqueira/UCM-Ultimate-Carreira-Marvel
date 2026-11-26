@@ -25,14 +25,14 @@ class UserProfileRequest(BaseModel):
         cleaned = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", value).strip()
         cleaned = re.sub(r"\s+", " ", cleaned)
         if len(cleaned) < 3:
-            raise ValueError("O campo deve conter ao menos 3 caracteres validos.")
+            raise ValueError("O campo deve conter ao menos 3 caracteres válidos.")
         return cleaned
 
     @field_validator("lgpd_consent")
     @classmethod
     def must_accept_privacy_terms(cls, value: bool) -> bool:
         if not value:
-            raise ValueError("O consentimento para processamento transitorio e obrigatorio.")
+            raise ValueError("O consentimento para processamento transitório é obrigatório.")
         return value
 
 
@@ -52,6 +52,4 @@ class HeroMatchResponse(BaseModel):
     trait_analysis: str
     career_advice: str
     recommended_next_step: str
-    image_url: str
-    image_attribution: str
     privacy_notice: str

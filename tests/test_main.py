@@ -70,6 +70,12 @@ def test_home_page_title_contains_official_product_name():
 
     assert response.status_code == 200
     assert "<title>UCM - Ultimate Carreira Marvel</title>" in response.text
+    assert '<h1 class="hero-title">Qual herói da Marvel define a sua carreira?</h1>' in response.text
+    assert '<meta name="description"' in response.text
+    assert '<meta name="theme-color"' in response.text
+    assert '<div id="hqWall" class="hq-wall" aria-hidden="true"></div>' in response.text
+    assert '<span class="brand-subtitle">ULTIMATE CARREIRA MARVEL</span>' in response.text
+    assert "<strong>UCM - Ultimate Carreira Marvel</strong>" in response.text
 
 
 def test_health_check_and_security_headers():
@@ -77,6 +83,8 @@ def test_health_check_and_security_headers():
     assert response.status_code == 200
     assert response.json()["persistence"] == "stateless_lgpd_compliant"
     assert "script-src 'self'" in response.headers["Content-Security-Policy"]
+    assert "'unsafe-inline'" not in response.headers["Content-Security-Policy"]
+    assert "wikimedia" not in response.headers["Content-Security-Policy"]
     assert response.headers["X-Content-Type-Options"] == "nosniff"
     assert response.headers["X-Frame-Options"] == "DENY"
 
@@ -131,4 +139,16 @@ def test_successful_hero_match(mock_ai):
     assert response.status_code == 200
     body = response.json()
     assert body["hero_name"] == "Homem de Ferro"
-    assert "CC BY-SA" in body["image_attribution"]
+    assert "image_url" not in body
+    assert "image_attribution" not in body
+
+
+@pytest.mark.parametrize(
+    "hero_key",
+    [hero.value for hero in HeroKey],
+)
+def test_original_hero_emblems_are_served(hero_key):
+    response = client.get(f"/static/img/heroes/{hero_key}.svg")
+
+    assert response.status_code == 200
+    assert "image/svg+xml" in response.headers["content-type"]

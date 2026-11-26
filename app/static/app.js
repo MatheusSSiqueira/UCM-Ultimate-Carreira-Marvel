@@ -1,263 +1,303 @@
-const DOM = {
-  form: document.getElementById("careerForm"),
-  submitBtn: document.getElementById("submitBtn"),
-  errorBox: document.getElementById("errorBox"),
-  loadingCard: document.getElementById("loadingCard"),
-  placeholderCard: document.getElementById("placeholderCard"),
-  resultCard: document.getElementById("resultCard"),
-  heroRosterGrid: document.getElementById("heroRosterGrid"),
-  randomStickersLayer: document.getElementById("randomStickersLayer"),
-  comicFxOverlay: document.getElementById("comicFxOverlay"),
-  heroImage: document.getElementById("heroImage"),
-  heroName: document.getElementById("heroName"),
-  alterEgo: document.getElementById("alterEgo"),
-  compatibilityBadge: document.getElementById("compatibilityBadge"),
-  imageAttribution: document.getElementById("imageAttribution"),
-  traitAnalysis: document.getElementById("traitAnalysis"),
-  careerAdvice: document.getElementById("careerAdvice"),
-  nextStep: document.getElementById("nextStep"),
-  privacyNotice: document.getElementById("privacyNotice"),
-  btnContrast: document.getElementById("btnContrast"),
+const REQUIRED_ELEMENTS = {
+  form: "careerForm",
+  submitBtn: "submitBtn",
+  errorBox: "errorBox",
+  loadingCard: "loadingCard",
+  placeholderCard: "placeholderCard",
+  resultCard: "resultCard",
+  heroRosterGrid: "heroRosterGrid",
+  hqWall: "hqWall",
+  comicFxOverlay: "comicFxOverlay",
+  workStyle: "work_style",
+  mainSkill: "main_skill",
+  biggestChallenge: "biggest_challenge",
+  careerGoal: "career_goal",
+  lgpdConsent: "lgpd_consent",
+  heroImage: "heroImage",
+  heroName: "heroName",
+  alterEgo: "alterEgo",
+  compatibilityBadge: "compatibilityBadge",
+  traitAnalysis: "traitAnalysis",
+  careerAdvice: "careerAdvice",
+  nextStep: "nextStep",
+  privacyNotice: "privacyNotice",
+  btnContrast: "btnContrast",
 };
 
 const HERO_CHARACTERS = [
-  { key: "IRON_MAN", name: "Homem de Ferro", primary: "#ed1d24", accent: "#facc15" },
-  { key: "SPIDER_MAN", name: "Homem-Aranha", primary: "#dc2626", accent: "#2563eb" },
-  { key: "CAPTAIN_AMERICA", name: "Cap. America", primary: "#1d4ed8", accent: "#ef4444" },
-  { key: "BLACK_PANTHER", name: "Pantera Negra", primary: "#18181b", accent: "#a855f7" },
-  { key: "DOCTOR_STRANGE", name: "Dr. Estranho", primary: "#7c2d12", accent: "#22c55e" },
-  { key: "BLACK_WIDOW", name: "Viuva Negra", primary: "#09090b", accent: "#ef4444" },
+  { key: "IRON_MAN", name: "Homem de Ferro" },
+  { key: "SPIDER_MAN", name: "Homem-Aranha" },
+  { key: "CAPTAIN_AMERICA", name: "Capitão América" },
+  { key: "BLACK_PANTHER", name: "Pantera Negra" },
+  { key: "DOCTOR_STRANGE", name: "Doutor Estranho" },
+  { key: "BLACK_WIDOW", name: "Viúva Negra" },
 ];
 
-function generateCharacterPngDataUrl(heroKey) {
-  const hero = HERO_CHARACTERS.find((h) => h.key === heroKey) || HERO_CHARACTERS[0];
-  const canvas = document.createElement("canvas");
-  canvas.width = 320;
-  canvas.height = 320;
-  const ctx = canvas.getContext("2d");
+const HERO_IMAGE_PATHS = Object.fromEntries(
+  HERO_CHARACTERS.map(({ key }) => [key, `/static/img/heroes/${key}.svg`]),
+);
 
-  ctx.clearRect(0, 0, 320, 320);
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = "#000000";
+const HQ_PANEL_LAYOUT = [
+  { size: "p-m", art: 1 }, { size: "p-wide", art: 2 },
+  { size: "p-s", art: 3 }, { size: "p-tall", art: 4 },
+  { size: "p-l", art: 5 }, { size: "p-m", speech: "Qual é o plano?" },
+  { size: "p-wide", art: 6 }, { size: "p-s", art: 1 },
+  { size: "p-l", speech: "Confie no processo." }, { size: "p-m", art: 2 },
+  { size: "p-tall", art: 3 }, { size: "p-wide", art: 4 },
+  { size: "p-s", speech: "Preciso de mais um sprint." }, { size: "p-l", art: 5 },
+  { size: "p-m", art: 6 }, { size: "p-wide", speech: "Reúna o time!" },
+  { size: "p-tall", art: 1 }, { size: "p-m", speech: "Vamos por partes." },
+  { size: "p-l", art: 2 }, { size: "p-s", art: 3 },
+  { size: "p-wide", speech: "Ideias em ação!" }, { size: "p-m", art: 4 },
+  { size: "p-tall", speech: "O próximo passo é seu." }, { size: "p-l", art: 5 },
+];
 
-  ctx.fillStyle = hero.accent;
-  ctx.beginPath();
-  for (let i = 0; i < 16; i++) {
-    const angle = (i * Math.PI) / 8;
-    const radius = i % 2 === 0 ? 145 : 110;
-    const x = 160 + Math.cos(angle) * radius;
-    const y = 155 + Math.sin(angle) * radius;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
+const ACTION_WORDS = ["POW", "BAM", "THWIP", "WHAM", "KRAAK"];
+const MIN_REQUEST_TIMEOUT_MS = 16_000;
+const STARTUP_ERROR =
+  "O servidor está iniciando ou indisponível. Tente novamente em alguns segundos.";
+const FIELD_IDS = ["work_style", "main_skill", "biggest_challenge", "career_goal", "lgpd_consent"];
+const FIELD_LABELS = {
+  work_style: "Escolha como você costuma liderar ou gerar resultados.",
+  main_skill: "Informe sua especialidade com pelo menos 3 caracteres.",
+  biggest_challenge: "Descreva seu desafio com pelo menos 3 caracteres.",
+  career_goal: "Descreva sua meta com pelo menos 3 caracteres.",
+  lgpd_consent: "Marque a autorização para continuar.",
+};
+const FIELD_LIMITS = {
+  main_skill: 120,
+  biggest_challenge: 200,
+  career_goal: 200,
+};
 
-  ctx.fillStyle = hero.primary;
-  ctx.beginPath();
-  ctx.ellipse(160, 155, 78, 95, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+const HQ_PANEL_IMAGES = new Map();
 
-  ctx.fillStyle = "#ffffff";
-  if (hero.key === "IRON_MAN") {
-    ctx.fillStyle = "#facc15";
-    ctx.fillRect(102, 95, 116, 115);
-    ctx.strokeRect(102, 95, 116, 115);
-    ctx.fillStyle = "#38bdf8";
-    ctx.fillRect(112, 132, 36, 16);
-    ctx.fillRect(172, 132, 36, 16);
-  } else if (hero.key === "CAPTAIN_AMERICA") {
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 46px Impact, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("A", 160, 118);
-    ctx.fillRect(115, 135, 32, 16);
-    ctx.fillRect(173, 135, 32, 16);
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(105, 130);
-    ctx.lineTo(148, 148);
-    ctx.lineTo(112, 162);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+function getDomElements() {
+  const elements = {};
+  const missingNames = [];
 
-    ctx.beginPath();
-    ctx.moveTo(215, 130);
-    ctx.lineTo(172, 148);
-    ctx.lineTo(208, 162);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+  Object.entries(REQUIRED_ELEMENTS).forEach(([name, id]) => {
+    elements[name] = document.getElementById(id);
+    if (!elements[name]) {
+      missingNames.push(id);
+      console.error(`Elemento obrigatório ausente: #${id}`);
+    }
+  });
+
+  if (missingNames.length > 0) {
+    const message = "Não foi possível iniciar a página. Atualize-a e tente novamente.";
+    if (elements.errorBox) {
+      elements.errorBox.textContent = message;
+      elements.errorBox.classList.remove("hidden");
+    } else {
+      window.alert(message);
+    }
+    return null;
   }
 
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(35, 255, 250, 44);
-  ctx.strokeRect(35, 255, 250, 44);
-  ctx.fillStyle = "#000000";
-  ctx.font = "bold 24px Impact, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(hero.name.toUpperCase(), 160, 286);
-
-  return canvas.toDataURL("image/png");
+  return elements;
 }
 
 function shuffleArray(items) {
   const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
   }
   return copy;
 }
 
-function renderRandomCharacterRoster() {
-  const shuffled = shuffleArray(HERO_CHARACTERS);
-  DOM.heroRosterGrid.textContent = "";
+function renderRandomCharacterRoster(dom) {
+  dom.heroRosterGrid.textContent = "";
 
-  shuffled.forEach((hero) => {
+  shuffleArray(HERO_CHARACTERS).forEach((hero, index) => {
     const card = document.createElement("div");
-    card.className = "roster-item";
-    const randomTilt = (Math.random() * 6 - 3).toFixed(1);
-    card.style.transform = `rotate(${randomTilt}deg)`;
+    card.className = `roster-item roster-tilt-${index % 5}`;
 
-    const img = document.createElement("img");
-    img.src = generateCharacterPngDataUrl(hero.key);
-    img.alt = `${hero.name} PNG`;
+    const image = document.createElement("img");
+    image.src = HERO_IMAGE_PATHS[hero.key];
+    image.alt = `Emblema original do perfil ${hero.name}`;
 
     const label = document.createElement("span");
     label.textContent = hero.name;
 
-    card.appendChild(img);
-    card.appendChild(label);
-    DOM.heroRosterGrid.appendChild(card);
-  });
-
-  renderFloatingBackgroundStickers(shuffled);
-}
-
-function renderFloatingBackgroundStickers(heroes) {
-  DOM.randomStickersLayer.textContent = "";
-  const zones = [
-    { top: "14%", left: "3%" },
-    { top: "68%", left: "4%" },
-    { top: "18%", left: "88%" },
-    { top: "72%", left: "87%" },
-  ];
-
-  zones.forEach((zone, idx) => {
-    const hero = heroes[idx % heroes.length];
-    const sticker = document.createElement("img");
-    sticker.className = "floating-sticker";
-    sticker.src = generateCharacterPngDataUrl(hero.key);
-    sticker.alt = "";
-    const angle = Math.floor(Math.random() * 32 - 16);
-    sticker.style.top = zone.top;
-    sticker.style.left = zone.left;
-    sticker.style.transform = `rotate(${angle}deg)`;
-    DOM.randomStickersLayer.appendChild(sticker);
+    card.append(image, label);
+    dom.heroRosterGrid.appendChild(card);
   });
 }
 
-function triggerComicClickEffect() {
-  const words = ["AVANTE", "IMPACTO", "VISAO", "ACAO", "SUCESSO"];
-  const chosen = words[Math.floor(Math.random() * words.length)];
+function showCssPanelArt(panel, artNumber, actionWord) {
+  panel.replaceChildren();
+  panel.classList.add(`art-${artNumber}`, "is-css-art");
 
-  DOM.submitBtn.classList.add("btn-clicked");
-  setTimeout(() => DOM.submitBtn.classList.remove("btn-clicked"), 360);
+  const soundEffect = document.createElement("span");
+  soundEffect.className = "hq-sfx";
+  soundEffect.textContent = actionWord;
+  panel.appendChild(soundEffect);
+}
 
-  DOM.comicFxOverlay.textContent = "";
-  const burst = document.createElement("div");
-  burst.className = "comic-burst-word";
-  burst.textContent = chosen;
-  DOM.comicFxOverlay.appendChild(burst);
-  DOM.comicFxOverlay.classList.remove("hidden");
+function loadPanelImage(panel, imageNumber, artNumber, actionWord) {
+  const imagePath = `/static/img/hq/painel-${imageNumber}.jpg`;
+  let availability = HQ_PANEL_IMAGES.get(imagePath);
+  if (!availability) {
+    availability = fetch(imagePath, { method: "HEAD" })
+      .then((response) => response.ok)
+      .catch(() => false);
+    HQ_PANEL_IMAGES.set(imagePath, availability);
+  }
 
-  setTimeout(() => {
-    DOM.comicFxOverlay.classList.add("hidden");
-  }, 550);
+  const image = document.createElement("img");
+  image.loading = "lazy";
+  image.decoding = "async";
+  image.alt = "";
+  image.onerror = () => showCssPanelArt(panel, artNumber, actionWord);
+
+  availability.then((isAvailable) => {
+    if (!isAvailable) return;
+    panel.classList.remove(`art-${artNumber}`, "is-css-art");
+    panel.replaceChildren(image);
+    image.src = imagePath;
+  });
+}
+
+function renderHqWall(dom) {
+  const grid = document.createElement("div");
+  grid.className = "hq-panel-grid";
+  let imageIndex = 0;
+
+  HQ_PANEL_LAYOUT.forEach((panelData, index) => {
+    const panel = document.createElement("div");
+    panel.className = `hq-panel ${panelData.size} panel-tilt-${(index % 3) + 1}`;
+
+    if (panelData.speech) {
+      panel.classList.add("speech-panel");
+      const balloon = document.createElement("span");
+      balloon.className = "speech-balloon";
+      balloon.textContent = panelData.speech;
+      panel.appendChild(balloon);
+    } else {
+      imageIndex = (imageIndex % 12) + 1;
+      const imageNumber = imageIndex.toString().padStart(2, "0");
+      const actionWord = ACTION_WORDS[(index + panelData.art) % ACTION_WORDS.length];
+      showCssPanelArt(panel, panelData.art, actionWord);
+      loadPanelImage(panel, imageNumber, panelData.art, actionWord);
+    }
+
+    grid.appendChild(panel);
+  });
+
+  shuffleArray([...grid.children]).forEach((panel) => grid.appendChild(panel));
+  dom.hqWall.appendChild(grid);
 }
 
 function stripUnsafeChars(value) {
   return value.replace(/[\u0000-\u001F\u007F-\u009F]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function getFormPayload() {
+function getFormPayload(dom) {
   return {
-    work_style: stripUnsafeChars(document.getElementById("work_style").value),
-    main_skill: stripUnsafeChars(document.getElementById("main_skill").value),
-    biggest_challenge: stripUnsafeChars(document.getElementById("biggest_challenge").value),
-    career_goal: stripUnsafeChars(document.getElementById("career_goal").value),
-    lgpd_consent: document.getElementById("lgpd_consent").checked,
+    work_style: stripUnsafeChars(dom.workStyle.value),
+    main_skill: stripUnsafeChars(dom.mainSkill.value),
+    biggest_challenge: stripUnsafeChars(dom.biggestChallenge.value),
+    career_goal: stripUnsafeChars(dom.careerGoal.value),
+    lgpd_consent: dom.lgpdConsent.checked,
   };
 }
 
 function validatePayload(payload) {
+  const invalidFields = [];
+  let message = "";
+
   if (!payload.lgpd_consent) {
-    throw new Error("Por favor, marque a caixa de autorizacao para gerar seu diagnostico.");
+    invalidFields.push("lgpd_consent");
+    message = FIELD_LABELS.lgpd_consent;
   }
-  if (
-    payload.main_skill.length < 3 ||
-    payload.biggest_challenge.length < 3 ||
-    payload.career_goal.length < 3
-  ) {
-    throw new Error("Preencha todos os campos com pelo menos 3 caracteres validos.");
+
+  for (const field of ["main_skill", "biggest_challenge", "career_goal"]) {
+    if (payload[field].length < 3) {
+      invalidFields.push(field);
+      message ||= FIELD_LABELS[field];
+    }
+  }
+
+  return { invalidFields, message };
+}
+
+function clearInvalidFields(dom) {
+  FIELD_IDS.forEach((id) => {
+    const field = document.getElementById(id);
+    field.removeAttribute("aria-invalid");
+    if (field.getAttribute("aria-describedby") === dom.errorBox.id) {
+      field.removeAttribute("aria-describedby");
+    }
+  });
+}
+
+function showError(dom, message, invalidFields = []) {
+  dom.errorBox.textContent = message;
+  dom.errorBox.classList.remove("hidden");
+  dom.placeholderCard.classList.remove("hidden");
+
+  invalidFields.forEach((id) => {
+    const field = document.getElementById(id);
+    field.setAttribute("aria-invalid", "true");
+    field.setAttribute("aria-describedby", dom.errorBox.id);
+  });
+
+  if (invalidFields.length > 0) {
+    document.getElementById(invalidFields[0]).focus();
   }
 }
 
-function setLoadingState(isLoading) {
-  DOM.submitBtn.disabled = isLoading;
-  DOM.submitBtn.textContent = isLoading
-    ? "GERANDO DIAGNOSTICO EXECUTIVO..."
-    : "GERAR MEU PERFIL E MENTORIA";
+function clearError(dom) {
+  dom.errorBox.textContent = "";
+  dom.errorBox.classList.add("hidden");
+}
+
+function setLoadingState(dom, isLoading) {
+  dom.submitBtn.disabled = isLoading;
+  dom.submitBtn.textContent = isLoading
+    ? "GERANDO SEU PERFIL..."
+    : "GERAR MEU PERFIL E PLANO DE CARREIRA";
 
   if (isLoading) {
-    DOM.placeholderCard.classList.add("hidden");
-    DOM.resultCard.classList.add("hidden");
-    DOM.loadingCard.classList.remove("hidden");
+    dom.placeholderCard.classList.add("hidden");
+    dom.resultCard.classList.add("hidden");
+    dom.loadingCard.classList.remove("hidden");
   } else {
-    DOM.loadingCard.classList.add("hidden");
+    dom.loadingCard.classList.add("hidden");
   }
 }
 
-function showError(message) {
-  DOM.errorBox.textContent = message;
-  DOM.errorBox.classList.remove("hidden");
-  DOM.placeholderCard.classList.remove("hidden");
-}
+function mapValidationErrors(detail) {
+  const invalidFields = new Set();
+  const messages = new Set();
 
-function clearError() {
-  DOM.errorBox.textContent = "";
-  DOM.errorBox.classList.add("hidden");
-}
+  detail.filter((item) => item && typeof item === "object").forEach((item) => {
+    const field = Array.isArray(item.loc)
+      ? item.loc.find((part) => FIELD_IDS.includes(part))
+      : null;
+    if (!field) return;
 
-function renderHeroMatch(data) {
-  const localCharacterPng = generateCharacterPngDataUrl(data.hero_key);
-  DOM.heroImage.onerror = () => {
-    DOM.heroImage.src = localCharacterPng;
+    invalidFields.add(field);
+    if (item.type === "string_too_long" && FIELD_LIMITS[field]) {
+      messages.add(`Use até ${FIELD_LIMITS[field]} caracteres neste campo.`);
+    } else {
+      messages.add(FIELD_LABELS[field]);
+    }
+  });
+
+  return {
+    invalidFields: [...invalidFields],
+    message: messages.size > 0
+      ? [...messages].join(" ")
+      : "Confira as informações e tente novamente.",
   };
-  DOM.heroImage.src = localCharacterPng;
-
-  DOM.heroName.textContent = data.hero_name;
-  DOM.alterEgo.textContent = data.alter_ego;
-  DOM.compatibilityBadge.textContent = `${data.compatibility_score}% AFINIDADE`;
-  DOM.imageAttribution.textContent = data.image_attribution;
-  DOM.traitAnalysis.textContent = data.trait_analysis;
-  DOM.careerAdvice.textContent = data.career_advice;
-  DOM.nextStep.textContent = data.recommended_next_step;
-  if (DOM.privacyNotice) {
-    DOM.privacyNotice.textContent = data.privacy_notice;
-  }
-
-  DOM.placeholderCard.classList.add("hidden");
-  DOM.resultCard.classList.remove("hidden");
 }
 
 async function requestHeroMatch(payload) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 18000);
+  const timeoutId = setTimeout(() => controller.abort(), MIN_REQUEST_TIMEOUT_MS);
 
   try {
     const response = await fetch("/api/v1/match", {
@@ -267,56 +307,164 @@ async function requestHeroMatch(payload) {
       signal: controller.signal,
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      if (response.status === 429) {
+        throw new Error("Você atingiu o limite de consultas. Aguarde alguns instantes e tente novamente.");
+      }
+      throw new Error(STARTUP_ERROR);
+    }
+
+    if (response.status === 429) {
+      const message = typeof data?.detail === "string"
+        ? data.detail
+        : "Você atingiu o limite de consultas. Aguarde alguns instantes e tente novamente.";
+      throw new Error(message);
+    }
+
+    if (response.status === 422) {
+      throw Object.assign(new Error(), {
+        validation: mapValidationErrors(Array.isArray(data?.detail) ? data.detail : []),
+      });
+    }
+
     if (!response.ok) {
-      const errorMessage = Array.isArray(data.detail)
-        ? data.detail[0].msg
-        : data.detail || "Nao foi possivel concluir a analise no momento.";
-      throw new Error(errorMessage);
+      throw new Error(
+        typeof data?.detail === "string"
+          ? data.detail
+          : "Não foi possível concluir a análise no momento. Tente novamente.",
+      );
     }
+
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      throw new Error(STARTUP_ERROR);
+    }
+
     return data;
-  } catch (err) {
-    if (err.name === "AbortError") {
-      throw new Error("A conexao demorou mais que o esperado. Tente novamente.");
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("A conexão demorou mais que o esperado. Tente novamente.");
     }
-    throw err;
+    if (error instanceof TypeError) {
+      throw new Error("Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.");
+    }
+    throw error;
   } finally {
     clearTimeout(timeoutId);
   }
 }
 
-async function handleFormSubmit(event) {
-  event.preventDefault();
-  clearError();
-  triggerComicClickEffect();
+function renderHeroMatch(dom, data) {
+  dom.heroImage.src = HERO_IMAGE_PATHS[data.hero_key] || HERO_IMAGE_PATHS.IRON_MAN;
+  dom.heroImage.alt = `Emblema original do perfil ${String(data.hero_name ?? "")}`;
+  dom.heroName.textContent = String(data.hero_name ?? "");
+  dom.heroName.setAttribute("tabindex", "-1");
+  dom.alterEgo.textContent = String(data.alter_ego ?? "");
+  dom.compatibilityBadge.textContent = `${String(data.compatibility_score ?? "")}% DE AFINIDADE`;
+  dom.traitAnalysis.textContent = String(data.trait_analysis ?? "");
+  dom.careerAdvice.textContent = String(data.career_advice ?? "");
+  dom.nextStep.textContent = String(data.recommended_next_step ?? "");
+  dom.privacyNotice.textContent = String(data.privacy_notice ?? "");
 
-  try {
-    const payload = getFormPayload();
-    validatePayload(payload);
-    setLoadingState(true);
-
-    const [matchResult] = await Promise.all([
-      requestHeroMatch(payload),
-      new Promise((resolve) => setTimeout(resolve, 650)),
-    ]);
-
-    setLoadingState(false);
-    renderHeroMatch(matchResult);
-  } catch (error) {
-    setLoadingState(false);
-    showError(error.message);
-  }
+  dom.placeholderCard.classList.add("hidden");
+  dom.resultCard.classList.remove("hidden");
+  dom.heroName.focus();
 }
 
-function initReadingContrastToggle() {
-  if (!DOM.btnContrast) return;
-  DOM.btnContrast.addEventListener("click", () => {
-    const isReadingMode = document.body.classList.toggle("reading-contrast-mode");
-    DOM.btnContrast.setAttribute("aria-pressed", String(isReadingMode));
-    DOM.btnContrast.textContent = isReadingMode ? "Modo HQ" : "Modo Leitura";
+function triggerComicClickEffect(dom) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const words = ["AVANTE", "IMPACTO", "VISÃO", "AÇÃO", "SUCESSO"];
+  const chosen = words[Math.floor(Math.random() * words.length)];
+
+  dom.submitBtn.classList.add("btn-clicked");
+  window.setTimeout(() => dom.submitBtn.classList.remove("btn-clicked"), 360);
+
+  dom.comicFxOverlay.textContent = "";
+  const burst = document.createElement("div");
+  burst.className = "comic-burst-word";
+  burst.textContent = chosen;
+  dom.comicFxOverlay.appendChild(burst);
+  dom.comicFxOverlay.classList.remove("hidden");
+
+  window.setTimeout(() => dom.comicFxOverlay.classList.add("hidden"), 550);
+}
+
+function setReadingMode(dom, isEnabled) {
+  document.body.classList.toggle("reading-contrast-mode", isEnabled);
+  dom.btnContrast.setAttribute("aria-pressed", String(isEnabled));
+  dom.btnContrast.textContent = isEnabled ? "Modo HQ" : "Modo Leitura";
+}
+
+function initReadingMode(dom) {
+  try {
+    setReadingMode(dom, window.sessionStorage.getItem("ucm-reading-mode") === "true");
+  } catch (error) {
+    console.warn("Não foi possível recuperar a preferência do Modo Leitura.", error);
+    setReadingMode(dom, false);
+  }
+
+  dom.btnContrast.addEventListener("click", () => {
+    const isEnabled = !document.body.classList.contains("reading-contrast-mode");
+    setReadingMode(dom, isEnabled);
+
+    try {
+      window.sessionStorage.setItem("ucm-reading-mode", String(isEnabled));
+    } catch (error) {
+      console.warn("Não foi possível salvar a preferência do Modo Leitura.", error);
+    }
   });
 }
 
-initReadingContrastToggle();
-renderRandomCharacterRoster();
-DOM.form.addEventListener("submit", handleFormSubmit);
+function initApp(dom) {
+  let isSubmitting = false;
+
+  initReadingMode(dom);
+  renderRandomCharacterRoster(dom);
+  renderHqWall(dom);
+
+  dom.form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+
+    isSubmitting = true;
+    clearError(dom);
+    clearInvalidFields(dom);
+    triggerComicClickEffect(dom);
+
+    let isLoading = false;
+    try {
+      const payload = getFormPayload(dom);
+      const validation = validatePayload(payload);
+      if (validation.message) {
+        showError(dom, validation.message, validation.invalidFields);
+        return;
+      }
+
+      isLoading = true;
+      setLoadingState(dom, true);
+      const [matchResult] = await Promise.all([
+        requestHeroMatch(payload),
+        new Promise((resolve) => window.setTimeout(resolve, 650)),
+      ]);
+      renderHeroMatch(dom, matchResult);
+    } catch (error) {
+      if (error.validation) {
+        showError(dom, error.validation.message, error.validation.invalidFields);
+      } else {
+        showError(dom, error.message || "Não foi possível concluir a análise. Tente novamente.");
+      }
+    } finally {
+      if (isLoading) setLoadingState(dom, false);
+      isSubmitting = false;
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const dom = getDomElements();
+  if (dom) initApp(dom);
+});
