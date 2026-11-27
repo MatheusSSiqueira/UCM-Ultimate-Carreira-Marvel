@@ -6,11 +6,11 @@ Frontend estático em app/static (index.html, styles.css, app.js), sem framework
 Regras fixas:
 - Todo texto visível ao usuário, mensagens de erro, prompts do Gemini, README e docstrings
   em português do Brasil, COM acentuação correta (UTF-8). Nunca usar emojis.
-- O nome oficial do produto é "UCM - Ultimate Carreira Marvel". Não usar "MARVEL Liderança e Carreira".
+- Use sempre o nome oficial do produto: "UCM - Ultimate Carreira Marvel".
 - Sem scripts inline (CSP script-src 'self'). Usar textContent, nunca innerHTML com dados externos.
 - Não persistir dados pessoais. Não registrar em log o conteúdo digitado pelo usuário.
 - Não adicionar dependências sem necessidade; fixar versões em requirements.txt.
 - Alterações pequenas e revisáveis; após cada tarefa rodar: ruff check app tests && pytest -q.
-- Não mencionar, em nenhum arquivo, instituição de ensino, curso, matrícula ou situação acadêmica
-  do autor. O projeto é apresentado como projeto pessoal de portfólio.
+- Não mencionar dados biográficos ou situação pessoal do autor em nenhum arquivo. O projeto é
+  apresentado como projeto pessoal de portfólio.
 - Não inserir imagens, logotipos ou quadrinhos protegidos por direitos autorais no repositório.

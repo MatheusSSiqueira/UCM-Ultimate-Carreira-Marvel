@@ -1,5 +1,6 @@
 import re
 from enum import Enum
+from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -25,14 +26,14 @@ class UserProfileRequest(BaseModel):
         cleaned = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", value).strip()
         cleaned = re.sub(r"\s+", " ", cleaned)
         if len(cleaned) < 3:
-            raise ValueError("O campo deve conter ao menos 3 caracteres válidos.")
+            raise ValueError("O campo deve conter pelo menos 3 caracteres válidos.")
         return cleaned
 
     @field_validator("lgpd_consent")
     @classmethod
     def must_accept_privacy_terms(cls, value: bool) -> bool:
         if not value:
-            raise ValueError("O consentimento para processamento transitório é obrigatório.")
+            raise ValueError("A autorização para o processamento temporário é obrigatória.")
         return value
 
 
@@ -53,3 +54,4 @@ class HeroMatchResponse(BaseModel):
     career_advice: str
     recommended_next_step: str
     privacy_notice: str
+    analysis_source: Literal["ia", "regras"]

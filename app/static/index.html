@@ -18,14 +18,14 @@
   <header class="topbar">
     <div class="container topbar-content">
       <div class="brand">
-        <div class="ucm-logo" aria-label="UCM">
+        <div class="ucm-logo" role="img" aria-label="Marca UCM - Ultimate Carreira Marvel">
           <span>UCM</span>
         </div>
         <span class="brand-subtitle">ULTIMATE CARREIRA MARVEL</span>
       </div>
 
       <button id="btnContrast" type="button" class="tool-btn" aria-pressed="false">
-        Modo Leitura
+        Modo de leitura
       </button>
     </div>
   </header>
@@ -34,7 +34,7 @@
     <section class="hero-header">
       <h1 class="hero-title">Qual herói da Marvel define a sua carreira?</h1>
       <p class="hero-subtitle">
-        Descubra qual arquétipo da Marvel reflete sua visão de trabalho e receba um direcionamento estratégico para o próximo passo da sua carreira.
+        Descubra qual arquétipo da Marvel reflete sua forma de trabalhar e receba um direcionamento estratégico para o próximo passo da sua carreira.
       </p>
     </section>
 
@@ -45,12 +45,12 @@
         <div class="field-group">
           <label for="work_style">1. Como você costuma liderar ou gerar resultados?</label>
           <select id="work_style" required>
-            <option value="Visionário de inovação que cria produtos, automatiza processos e investe em tecnologia">Inovação e produto: crio soluções novas e modernizo o negócio (perfil Tony Stark)</option>
-            <option value="Líder de pessoas que inspira confiança, ética e une a equipe pelo exemplo">Gestão e cultura: lidero pelo exemplo e fortaleço a equipe (perfil Steve Rogers)</option>
-            <option value="Estrategista analítico que estuda o mercado, antecipa riscos e planeja no longo prazo">Visão estratégica: analiso cenários e planejo cada passo com precisão (perfil Dr. Estranho)</option>
-            <option value="Executor focado em negociações críticas, resolução rápida de crises e eficiência">Execução e crise: resolvo problemas complexos com agilidade e discrição (perfil Natasha Romanoff)</option>
-            <option value="Gestor de alto impacto que equilibra governança, patrimônio e crescimento sustentável">Governança e impacto: uno tradição, recursos e expansão sustentável (perfil Rei T'Challa)</option>
-            <option value="Empreendedor versátil e próximo do cliente, com aprendizado rápido e adaptabilidade">Relacionamento e agilidade: aprendo rápido na prática e foco no cliente (perfil Peter Parker)</option>
+            <option value="Visionário que cria produtos, automatiza processos e investe em tecnologia">Inovação e produto: crio soluções e modernizo o negócio (perfil Tony Stark)</option>
+            <option value="Líder de pessoas que inspira confiança, ética e união pelo exemplo">Gestão e cultura: lidero pelo exemplo e fortaleço a equipe (perfil Steve Rogers)</option>
+            <option value="Estrategista que analisa cenários, antecipa riscos e planeja no longo prazo">Visão estratégica: analiso cenários e planejo com precisão (perfil Dr. Estranho)</option>
+            <option value="Executor que resolve crises, conduz negociações e busca eficiência">Execução e crise: resolvo problemas com agilidade e discrição (perfil Natasha Romanoff)</option>
+            <option value="Gestor que equilibra governança, meios e crescimento sustentável">Governança e impacto: uno tradição, meios e expansão sustentável (perfil Rei T'Challa)</option>
+            <option value="Empreendedor versátil, próximo do cliente e com aprendizado rápido">Relacionamento e agilidade: aprendo na prática e foco no cliente (perfil Peter Parker)</option>
           </select>
         </div>
 
@@ -75,18 +75,18 @@
         <div class="consent-line">
           <label class="consent-row" for="lgpd_consent">
             <input id="lgpd_consent" type="checkbox" required />
-            <span>Autorizo a análise instantânea por IA (sem armazenamento dos meus dados).</span>
+            <span>Autorizo o processamento temporário dos meus dados para gerar esta análise.</span>
           </label>
           <details class="privacy-drawer">
-            <summary>Uso consciente de dados</summary>
+            <summary>Como os dados são usados</summary>
             <p id="privacyNotice">
-              Seus dados são processados exclusivamente em memória volátil pela API Google Gemini para gerar este diagnóstico profissional, sem gravação em banco de dados ou histórico.
+              Seus dados são processados temporariamente para gerar esta análise. O projeto não mantém banco de dados nem histórico. Quando a análise usa o Google Gemini, os dados enviados seguem a política do provedor.
             </p>
           </details>
         </div>
 
         <button id="submitBtn" type="submit" class="btn-marvel">
-          GERAR MEU PERFIL E PLANO DE CARREIRA
+          Gerar meu perfil e plano de carreira
         </button>
 
         <p id="errorBox" class="error-banner hidden" role="alert" aria-live="assertive"></p>
@@ -95,7 +95,7 @@
       <aside class="surface-sheet result-sheet" aria-live="polite">
         <div id="loadingCard" class="loading-state hidden">
           <div class="comic-loader-burst">AÇÃO</div>
-          <p class="loading-title">CONECTANDO ESTRATÉGIA E CARREIRA...</p>
+          <p class="loading-title">Preparando sua análise de carreira...</p>
           <div class="loading-bar"><div class="loading-bar-fill"></div></div>
         </div>
 
@@ -103,7 +103,7 @@
           <div class="roster-header">
             <h2 class="section-heading">Arquétipos da Marvel</h2>
             <p class="placeholder-intro">
-              Cada personagem representa uma forma de encarar o trabalho. Preencha o formulário para descobrir a sua:
+              Cada personagem representa uma forma de encarar o trabalho. Preencha o formulário para conhecer o perfil mais próximo do seu:
             </p>
           </div>
           <div id="heroRosterGrid" class="hero-roster-preview"></div>
@@ -113,10 +113,11 @@
           <div class="result-topbar">
             <span class="result-tag">PERFIL PROFISSIONAL IDENTIFICADO</span>
             <span id="compatibilityBadge" class="match-badge"></span>
+            <span id="analysisSourceBadge" class="analysis-source-badge" aria-label="Origem da análise"></span>
           </div>
 
           <div class="hero-showcase">
-            <img id="heroImage" src="" alt="Emblema original do perfil" />
+            <img id="heroImage" src="" alt="Emblema ilustrativo do perfil" />
             <div class="hero-identity">
               <span id="alterEgo" class="alter-ego"></span>
               <h2 id="heroName" class="hero-name" tabindex="-1"></h2>
@@ -125,7 +126,7 @@
 
           <div class="result-narrative">
             <div class="narrative-block">
-              <h3>Sinergia com seu estilo de atuação</h3>
+              <h3>Compatibilidade com sua forma de trabalhar</h3>
               <p id="traitAnalysis"></p>
             </div>
 
@@ -146,9 +147,8 @@
 
   <footer class="footer">
     <div class="container footer-content">
-      <p>
-        <strong>UCM - Ultimate Carreira Marvel</strong> - Projeto pessoal de portfólio, desenvolvido com Python, FastAPI e Google Gemini.
-      </p>
+      <p>UCM - Ultimate Carreira Marvel | Projeto pessoal de portfólio | Código aberto (MIT) | Python, FastAPI e Google Gemini</p>
+      <p class="footer-credits">Projeto independente, sem vínculo com a Marvel ou a Disney. Marvel e os nomes de personagens são marcas de seus respectivos titulares.</p>
     </div>
   </footer>
 

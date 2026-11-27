@@ -17,6 +17,7 @@ const REQUIRED_ELEMENTS = {
   heroName: "heroName",
   alterEgo: "alterEgo",
   compatibilityBadge: "compatibilityBadge",
+  analysisSourceBadge: "analysisSourceBadge",
   traitAnalysis: "traitAnalysis",
   careerAdvice: "careerAdvice",
   nextStep: "nextStep",
@@ -44,7 +45,7 @@ const HQ_PANEL_LAYOUT = [
   { size: "p-wide", art: 6 }, { size: "p-s", art: 1 },
   { size: "p-l", speech: "Confie no processo." }, { size: "p-m", art: 2 },
   { size: "p-tall", art: 3 }, { size: "p-wide", art: 4 },
-  { size: "p-s", speech: "Preciso de mais um sprint." }, { size: "p-l", art: 5 },
+  { size: "p-s", speech: "Mais um ciclo de trabalho." }, { size: "p-l", art: 5 },
   { size: "p-m", art: 6 }, { size: "p-wide", speech: "Reúna o time!" },
   { size: "p-tall", art: 1 }, { size: "p-m", speech: "Vamos por partes." },
   { size: "p-l", art: 2 }, { size: "p-s", art: 3 },
@@ -52,7 +53,7 @@ const HQ_PANEL_LAYOUT = [
   { size: "p-tall", speech: "O próximo passo é seu." }, { size: "p-l", art: 5 },
 ];
 
-const ACTION_WORDS = ["POW", "BAM", "THWIP", "WHAM", "KRAAK"];
+const ACTION_WORDS = ["AÇÃO", "AVANTE", "IMPACTO", "FOCO", "RESULTADO"];
 const MIN_REQUEST_TIMEOUT_MS = 16_000;
 const STARTUP_ERROR =
   "O servidor está iniciando ou indisponível. Tente novamente em alguns segundos.";
@@ -62,7 +63,7 @@ const FIELD_LABELS = {
   main_skill: "Informe sua especialidade com pelo menos 3 caracteres.",
   biggest_challenge: "Descreva seu desafio com pelo menos 3 caracteres.",
   career_goal: "Descreva sua meta com pelo menos 3 caracteres.",
-  lgpd_consent: "Marque a autorização para continuar.",
+  lgpd_consent: "Autorize o processamento temporário dos dados para continuar.",
 };
 const FIELD_LIMITS = {
   main_skill: 120,
@@ -257,8 +258,8 @@ function clearError(dom) {
 function setLoadingState(dom, isLoading) {
   dom.submitBtn.disabled = isLoading;
   dom.submitBtn.textContent = isLoading
-    ? "GERANDO SEU PERFIL..."
-    : "GERAR MEU PERFIL E PLANO DE CARREIRA";
+    ? "Preparando seu perfil..."
+    : "Gerar meu perfil e plano de carreira";
 
   if (isLoading) {
     dom.placeholderCard.classList.add("hidden");
@@ -364,6 +365,9 @@ function renderHeroMatch(dom, data) {
   dom.heroName.setAttribute("tabindex", "-1");
   dom.alterEgo.textContent = String(data.alter_ego ?? "");
   dom.compatibilityBadge.textContent = `${String(data.compatibility_score ?? "")}% DE AFINIDADE`;
+  dom.analysisSourceBadge.textContent = data.analysis_source === "ia"
+    ? "Análise por IA"
+    : "Análise por regras (modo offline)";
   dom.traitAnalysis.textContent = String(data.trait_analysis ?? "");
   dom.careerAdvice.textContent = String(data.career_advice ?? "");
   dom.nextStep.textContent = String(data.recommended_next_step ?? "");
@@ -396,7 +400,7 @@ function triggerComicClickEffect(dom) {
 function setReadingMode(dom, isEnabled) {
   document.body.classList.toggle("reading-contrast-mode", isEnabled);
   dom.btnContrast.setAttribute("aria-pressed", String(isEnabled));
-  dom.btnContrast.textContent = isEnabled ? "Modo HQ" : "Modo Leitura";
+  dom.btnContrast.textContent = isEnabled ? "Modo HQ" : "Modo de leitura";
 }
 
 function initReadingMode(dom) {

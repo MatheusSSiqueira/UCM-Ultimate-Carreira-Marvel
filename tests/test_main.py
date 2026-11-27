@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch
@@ -44,6 +46,7 @@ def test_rate_limit_returns_429_after_maximum_requests(monkeypatch):
     third_response = client.post("/api/v1/match", json=valid_profile_payload())
 
     assert first_response.status_code == 200
+    assert first_response.json()["analysis_source"] == "regras"
     assert second_response.status_code == 200
     assert third_response.status_code == 429
 
@@ -56,13 +59,31 @@ def test_deterministic_match_returns_valid_hero_key():
     assert isinstance(decision.hero_key, HeroKey)
 
 
+def test_deterministic_match_respects_text_limits_and_quotes_profile_data():
+    payload = valid_profile_payload()
+    payload["main_skill"] = "habilidade " * 10
+    payload["biggest_challenge"] = "desafio " * 25
+    payload["career_goal"] = "meta " * 40
+    profile = UserProfileRequest.model_validate(payload)
+
+    decision = main.build_deterministic_match(profile)
+
+    assert len(decision.trait_analysis) <= 450
+    assert len(decision.career_advice) <= 500
+    assert len(decision.recommended_next_step) <= 250
+    assert '"habilidade' in decision.trait_analysis
+    assert '("desafio' in decision.career_advice
+    assert 'à meta "meta' in decision.recommended_next_step
+
+
 def test_empty_gemini_api_key_uses_deterministic_fallback(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "")
     profile = UserProfileRequest.model_validate(valid_profile_payload())
 
-    decision = main.generate_ai_decision(profile)
+    decision, analysis_source = main.generate_ai_decision(profile)
 
     assert isinstance(decision.hero_key, HeroKey)
+    assert analysis_source == "regras"
 
 
 def test_home_page_title_contains_official_product_name():
@@ -75,7 +96,17 @@ def test_home_page_title_contains_official_product_name():
     assert '<meta name="theme-color"' in response.text
     assert '<div id="hqWall" class="hq-wall" aria-hidden="true"></div>' in response.text
     assert '<span class="brand-subtitle">ULTIMATE CARREIRA MARVEL</span>' in response.text
-    assert "<strong>UCM - Ultimate Carreira Marvel</strong>" in response.text
+    assert (
+        "UCM - Ultimate Carreira Marvel | Projeto pessoal de portfólio | Código aberto (MIT) "
+        "| Python, FastAPI e Google Gemini"
+    ) in response.text
+    assert (
+        "Projeto independente, sem vínculo com a Marvel ou a Disney. Marvel e os nomes de "
+        "personagens são marcas de seus respectivos titulares."
+    ) in response.text
+    options = re.findall(r'<option value="([^"]*)">([^<]*)</option>', response.text)
+    assert len(options) == 6
+    assert all(len(value) <= 110 and len(label) <= 110 for value, label in options)
 
 
 def test_health_check_and_security_headers():
@@ -122,12 +153,15 @@ def test_rejects_missing_lgpd_consent():
 
 @patch("app.main.generate_ai_decision")
 def test_successful_hero_match(mock_ai):
-    mock_ai.return_value = AIHeroDecision(
-        hero_key=HeroKey.IRON_MAN,
-        compatibility_score=95,
-        trait_analysis="Perfil altamente orientado à resolução técnica com automação.",
-        career_advice="Invista em arquitetura de sistemas distribuídos e liderar revisões de código.",
-        recommended_next_step="Containerizar seus projetos principais e documentar decisões arquiteturais.",
+    mock_ai.return_value = (
+        AIHeroDecision(
+            hero_key=HeroKey.IRON_MAN,
+            compatibility_score=95,
+            trait_analysis="Perfil altamente orientado à resolução técnica com automação.",
+            career_advice="Invista em arquitetura de sistemas distribuídos e lidere revisões de código.",
+            recommended_next_step="Containerize seus projetos principais e documente decisões arquiteturais.",
+        ),
+        "ia",
     )
 
     response = client.post(
@@ -139,6 +173,7 @@ def test_successful_hero_match(mock_ai):
     assert response.status_code == 200
     body = response.json()
     assert body["hero_name"] == "Homem de Ferro"
+    assert body["analysis_source"] == "ia"
     assert "image_url" not in body
     assert "image_attribution" not in body
 

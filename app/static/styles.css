@@ -560,6 +560,8 @@ body.reading-contrast-mode .tool-btn {
 
 .result-topbar {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   justify-content: space-between;
   align-items: center;
   padding-bottom: 0.65rem;
@@ -581,6 +583,13 @@ body.reading-contrast-mode .tool-btn {
   font-size: 0.78rem;
   font-weight: 700;
   padding: 0.15rem 0.55rem;
+}
+
+.analysis-source-badge {
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  padding: 0.1rem 0.45rem;
 }
 
 .hero-showcase {
